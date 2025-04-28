@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Entrepreneurial Support Structures in Switzerland - Interactive Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Style Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <style>
+    /* Mise en page générale : plein écran */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden; /* Empêche le défilement de la page entière */
+    }
+    #map {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    /* Titre centré en haut de la carte */
+    .map-title {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px 40px; /* Reduced padding to allow more flexibility */
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      font-family: Arial, sans-serif;
+      font-size: 1.8rem;
+      font-weight: 900;
+      z-index: 1100;
+      pointer-events: none;
+      white-space: nowrap; /* Prevents the title from wrapping to a new line */
+    }    
+    /*********************************************************
+     *  Panneau minimaliste en haut à droite (filtres)
+     *********************************************************/
+    .filters-panel {
+      position: absolute;
+      top: 140px; /* Align with the info panel */
+      right: 20px;
+      width: 280px;
+      max-height: 80vh; /* Limite la hauteur à 80% de la hauteur de la vue */
+      overflow-y: visible; /* Ajoute un défilement vertical si nécessaire */
+      background: #fff;
+      border-radius: 6px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 1200;
+      font-family: Arial, sans-serif;
+    }
+    .filters-panel h1 {
+      margin: 0 0 20px;
+      font-size: 1.8rem;
+      font-weight: 900;
+    }
+    .filter-group {
+      margin-bottom: 15px;
+    }
+    .filter-group label {
+      display: block;
+      font-size: 1.1rem;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+    /* custom-select */
+    .custom-select {
+      position: relative;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .custom-select:hover {
+      border-color: #999;
+    }
+    .custom-select .current-value {
+      color: #333;
+    }
+    .custom-options {
+      position: absolute;
+      top: 42px;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      max-height: 300px;
+      overflow-y: auto;
+      display: none;
+      z-index: 9999;
+    }
+    .custom-options.open {
+      display: block;
+    }
+    .option-item {
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    .option-item:hover {
+      background: #f2f2f2;
+    }
+    .option-item.selected {
+      border: 2px solid #e0e0e0;
+      border-radius: 4px;
+      background: #f9f9f9;
+    }
+    .option-item label {
+      margin: 0;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    /*********************************************************
+     *  Panneau à gauche pour les infos de la structure
+     *********************************************************/
+    .info-panel {
+      position: absolute;
+      top: 140px; /* Adjusted to be lower to avoid overlap with the title */
+      left: 30px;
+      width: 320px;
+      max-height: calc(100vh - 160px); /* Ajuste la hauteur pour permettre le défilement complet */
+      overflow-y: auto; /* Ajoute un défilement vertical si nécessaire */
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 1200;
+      font-family: Arial, sans-serif;
+      display: none; /* caché par défaut */
+    }
+    .info-panel.show {
+      display: block;
+    }
+    /* Style du contenu */
+    .info-panel .structure-name {
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .info-panel .structure-address {
+      font-size: 1rem;
+      color: #555;
+      margin-bottom: 15px;
+    }
+    .info-panel .street-view {
+      width: 100%;
+      height: auto;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      object-fit: cover;
+    }
+    .field-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+    .field-tag {
+      background: #e3e3e3;
+      border-radius: 20px;
+      padding: 5px 10px;
+      font-size: 0.9rem;
+      color: #333;
+    }
+    .block-subtitle {
+      font-weight: bold;
+      margin-top: 10px;
+      margin-bottom: 5px;
+      font-size: 1.1rem;
+    }
+    .info-box {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 6px 10px;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    .website-btn {
+      display: block; /* Change à block pour centrer dans le conteneur parent */
+      background: #000;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      text-decoration: none;
+      text-align: center;
+      cursor: pointer;
+      margin: 0 auto; /* Centre le bouton */
+    }
+    .website-btn:hover {
+      background: #333;
+    }
+
+    /* Nouveau bloc "Credits" */
+    .credits-panel {
+      position: absolute;
+      bottom: 20px;  /* positionné en bas à gauche ; ajustez selon vos besoins */
+      right: 20px;
+      width: 320px;
+      max-height: 80vh; /* Limite la hauteur à 80% de la hauteur de la vue */
+      overflow-y: auto; /* Ajoute un défilement vertical si nécessaire */
+      background: #fff;
+      border-radius: 6px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 1000;
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .credits-text {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 5px;
+      margin-top: 5px;
+    }
+
+    .linkedin-logo {
+      width: 24px;
+      height: 24px;
+      background-image: url('Images/linkedinblackicon.png');
+      background-size: cover;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="map">
+    <div class="map-title">Entrepreneurial Support Structures in Switzerland</div>
+  </div>
+
+  <!-- Panneau de filtres (droite) -->
+  <div class="filters-panel" id="filtersPanel">
+    <h1>Filters</h1>
+
+    <!-- Groupe Type -->
+    <div class="filter-group">
+      <label for="typeSelect">Type</label>
+      <div class="custom-select" id="typeSelect">
+        <span class="current-value">All</span>
+        <div class="custom-options">
+          <div class="option-item selected" data-value="all">All</div>
+          <div class="option-item" data-value="Accelerator">Accelerator</div>
+          <div class="option-item" data-value="Cluster">Cluster</div>
+          <div class="option-item" data-value="FabLab">FabLab</div>
+          <div class="option-item" data-value="Hub">Hub</div>
+          <div class="option-item" data-value="Incubator">Incubator</div>
+          <div class="option-item" data-value="Investment Fund">Investment Fund</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Groupe Field -->
+    <div class="filter-group">
+      <label for="fieldSelect">Field</label>
+      <div class="custom-select" id="fieldSelect">
+        <span class="current-value">All</span>
+        <div class="custom-options">
+          <div class="option-item selected" data-value="all">All</div>
+          <div class="option-item" data-value="Advanced Manufacturing">Advanced Manufacturing</div>
+          <div class="option-item" data-value="AgriTech">AgriTech</div>
+          <div class="option-item" data-value="BioTech">BioTech</div>
+          <div class="option-item" data-value="Blockchain">Blockchain</div>
+          <div class="option-item" data-value="Cleantech">Cleantech</div>
+          <div class="option-item" data-value="Cybersecurity">Cybersecurity</div>
+          <div class="option-item" data-value="Digital">Digital</div>
+          <div class="option-item" data-value="Digital Fabrication">Digital Fabrication</div>
+          <div class="option-item" data-value="Digital Health">Digital Health</div>
+          <div class="option-item" data-value="Drones">Drones</div>
+          <div class="option-item" data-value="Energy">Energy</div>
+          <div class="option-item" data-value="Environment">Environment</div>
+          <div class="option-item" data-value="FemTech">FemTech</div>
+          <div class="option-item" data-value="Fintech">Fintech</div>
+          <div class="option-item" data-value="FoodTech">FoodTech</div>
+          <div class="option-item" data-value="Health">Health</div>
+          <div class="option-item" data-value="High-Tech">High-Tech</div>
+          <div class="option-item" data-value="Hospitality">Hospitality</div>
+          <div class="option-item" data-value="ICT">ICT</div>
+          <div class="option-item" data-value="Innovation">Innovation</div>
+          <div class="option-item" data-value="Labs">Labs</div>
+          <div class="option-item" data-value="Legal">Legal</div>
+          <div class="option-item" data-value="Life Science">Life Science</div>
+          <div class="option-item" data-value="Luxury">Luxury</div>
+          <div class="option-item" data-value="MedTech">MedTech</div>
+          <div class="option-item" data-value="MicroTechnology">MicroTechnology</div>
+          <div class="option-item" data-value="Multimedia">Multimedia</div>
+          <div class="option-item" data-value="Multi-sector Startups">Multi-sector Startups</div>
+          <div class="option-item" data-value="Nanotechnology">Nanotechnology</div>
+          <div class="option-item" data-value="Neuroscience">Neuroscience</div>
+          <div class="option-item" data-value="Networking">Networking</div>
+          <div class="option-item" data-value="Pharma">Pharma</div>
+          <div class="option-item" data-value="Prototyping">Prototyping</div>
+          <div class="option-item" data-value="R&D">R&D</div>
+          <div class="option-item" data-value="Research">Research</div>
+          <div class="option-item" data-value="Services">Services</div>
+          <div class="option-item" data-value="Social Innovation">Social Innovation</div>
+          <div class="option-item" data-value="Space Technology">Space Technology</div>
+          <div class="option-item" data-value="Sport">Sport</div>
+          <div class="option-item" data-value="Sustainability">Sustainability</div>
+          <div class="option-item" data-value="Technology">Technology</div>
+          <div class="option-item" data-value="Water">Water</div>
+          <div class="option-item" data-value="Web3">Web3</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panneau à gauche pour afficher les infos d'une structure -->
+  <div class="info-panel" id="infoPanel"></div>
+
+  <!-- Nouveau bloc "Credits" -->
+  <div class="credits-panel" id="creditsPanel">
+    <div class="credits-text">Made by Geoffrey Poincheval</div>
+    <a class="linkedin-btn" href="https://www.linkedin.com/in/geoffrey-poincheval-74ab9313b/" target="_blank">
+      <img src="Images/linkedinblackicon.png" alt="LinkedIn" style="width: 24px; height: 24px;">
+    </a>
+  </div>
+
+  <!-- Script Leaflet -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    /********************************************************
+     * 1. Configuration de la carte
+     ********************************************************/
+    let map, geojsonLayer;
+
+    // 1) Définition des icônes et variable de sélection
+    const defaultIcon = L.icon({
+      iconUrl: 'Images/Blackpin.png',
+      iconSize: [32, 34],
+      iconAnchor: [16, 32],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+    const selectedIcon = L.icon({
+      iconUrl: 'Images/Redpin.png',
+      iconSize: [32, 34],
+      iconAnchor: [16, 32],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+    let currentlySelectedMarker = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // 2) Initialisation de la carte
+      map = L.map('map', { minZoom: 8 }).setView([46.8182, 8.0505], 8);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Limiter la vue
+      const sw = L.latLng(40.0, 0.0);
+      const ne = L.latLng(55.0, 20.0);
+      const bounds = L.latLngBounds(sw, ne);
+      map.setMaxBounds(bounds);
+      map.on('drag', () => map.panInsideBounds(bounds, { animate: false }));
+
+      // Charger data et initialiser les filtres
+      loadGeoJSON();
+      initCustomSelect('typeSelect');
+      initCustomSelect('fieldSelect');
+    });
+
+    /********************************************************
+     * 2. Chargement et filtrage du GeoJSON
+     ********************************************************/
+    function loadGeoJSON() {
+      fetch('data.geojson?t=' + Date.now())
+        .then(response => response.json())
+        .then(function(data) {
+          const selectedTypes  = getSelectedValues('typeSelect');
+          const selectedFields = getSelectedValues('fieldSelect');
+
+          // Filtrage
+          if (!selectedTypes.includes('all')) {
+            data.features = data.features.filter(f =>
+              selectedTypes.some(val =>
+                f.properties.Type && f.properties.Type.indexOf(val) !== -1
+              )
+            );
+          }
+          if (!selectedFields.includes('all')) {
+            data.features = data.features.filter(f =>
+              selectedFields.some(val =>
+                f.properties.Field && f.properties.Field.indexOf(val) !== -1
+              )
+            );
+          }
+
+          if (geojsonLayer) {
+            map.removeLayer(geojsonLayer);
+          }
+
+          // 3) Création de la couche GeoJSON avec gestion du clic pour changer d'icône
+          geojsonLayer = L.geoJson(data, {
+            pointToLayer: function(feature, latlng) {
+              return L.marker(latlng, { icon: defaultIcon });
+            },
+            onEachFeature: function(feature, layer) {
+              const p = feature.properties;
+              layer.bindTooltip(p.Name || "Unknown", {
+                direction: 'top',
+                offset: [0, -10]
+              });
+
+              layer.on('click', function() {
+                // a) Réinitialiser l'ancien marqueur
+                if (currentlySelectedMarker) {
+                  currentlySelectedMarker.setIcon(defaultIcon);
+                }
+                // b) Sélectionner celui-ci
+                layer.setIcon(selectedIcon);
+                currentlySelectedMarker = layer;
+
+                // 2) Quand on clique : afficher le bloc de gauche avec la mise en page
+                showInfoPanel(p);
+              });
+            }
+          }).addTo(map);
+        })
+        .catch(err => console.error("Erreur GeoJSON:", err));
+    }
+
+    /********************************************************
+     * 2.b Affichage du panneau de gauche (info-panel)
+     ********************************************************/
+     function showInfoPanel(props) {
+  const infoPanel = document.getElementById('infoPanel');
+  // Ici on passe en local plutôt que Google API
+  const imageUrl = 'images/' + encodeURIComponent(props.Name) + '.png';
+
+  // Génère les tags...
+  let fieldTags = '';
+  if (props.Field) {
+    props.Field.split(',').map(s=>s.trim())
+      .forEach(tag => {
+        fieldTags += `<span class="field-tag">${tag}</span>`;
+      });
+  }
+
+  infoPanel.innerHTML = `
+    <div class="structure-name">${props.Name}</div>
+    <div class="structure-address">${props.Adresse}</div>
+    <!-- Affiche votre image locale -->
+    <img class="street-view" src="${imageUrl}" alt="${props.Name}" />
+    <div class="field-tags">${fieldTags}</div>
+    <div class="block-subtitle">Pricing model</div>
+    <div class="info-box">${props.Price}</div>
+    <div class="block-subtitle">Financing available</div>
+    <div class="info-box">${props.Financement}</div>
+    <a class="website-btn" href="${props.Website}" target="_blank">Check the Website</a>
+  `;
+  infoPanel.classList.add('show');
+}
+      // Gérer l'affichage des tags Field
+      let fieldTags = '';
+      if (props.Field) {
+        // On suppose que p.Field est une string type "MedTech, Manufacturing, Sustainability"
+        const splitted = props.Field.split(',').map(s => s.trim());
+        fieldTags = splitted.map(tag => `<span class="field-tag">${tag}</span>`).join('');
+      }
+
+      // Remplir le contenu HTML
+      infoPanel.innerHTML = `
+        <div class="structure-name">${props.Name || "Unknown"}</div>
+        <div class="structure-address">${props.Adresse || "No address"}</div>
+        <img class="street-view" src="${streetViewUrl}" alt="Street View Image" />
+        <div class="field-tags">${fieldTags}</div>
+
+        <div class="block-subtitle">Pricing model</div>
+        <div class="info-box">${props.Price || "N/A"}</div>
+
+        <div class="block-subtitle">Financing available</div>
+        <div class="info-box">${props.Financement || "No Financing"}</div>
+
+        <a class="website-btn" href="${props.Website || "#"}" target="_blank">
+          Check the Website
+        </a>
+      `;
+      infoPanel.classList.add('show');
+
+    /********************************************************
+     * 3. Gestion des sélecteurs custom
+     ********************************************************/
+    function getSelectedValues(selectId) {
+      const selectEl = document.getElementById(selectId);
+      const options = selectEl.querySelectorAll('.custom-options .option-item');
+      let values = [];
+      options.forEach(option => {
+        if (option.classList.contains('selected')) {
+          values.push(option.dataset.value);
+        }
+      });
+      if (values.length === 0) {
+        values.push('all');
+      }
+      return values;
+    }
+
+    function initCustomSelect(selectId) {
+      const selectEl = document.getElementById(selectId);
+      const currentValueEl = selectEl.querySelector('.current-value');
+      const optionsContainer = selectEl.querySelector('.custom-options');
+
+      // Clic sur la zone -> ouvrir/fermer
+      selectEl.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const isOpen = optionsContainer.classList.contains('open');
+        closeAllCustomSelect();
+        if (!isOpen) {
+          optionsContainer.classList.add('open');
+        }
+      });
+
+      // Gérer le clic sur chaque option
+      const options = optionsContainer.querySelectorAll('.option-item');
+      options.forEach(option => {
+        option.addEventListener('click', function(evt) {
+          evt.stopPropagation();
+          // si "All"
+          if (option.dataset.value === 'all') {
+            options.forEach(other => {
+              other.classList.remove('selected');
+            });
+            option.classList.add('selected');
+          } else {
+            const allOption = optionsContainer.querySelector('[data-value="all"]');
+            allOption.classList.remove('selected');
+            // toggler
+            if (!option.classList.contains('selected')) {
+              option.classList.add('selected');
+            } else {
+              option.classList.remove('selected');
+            }
+          }
+          updateCurrentValue(selectId);
+          loadGeoJSON();
+        });
+      });
+
+      updateCurrentValue(selectId);
+    }
+
+    // Met à jour la valeur visible (ex: "All" ou "2 selected")
+    function updateCurrentValue(selectId) {
+      const selectEl = document.getElementById(selectId);
+      const currentValueEl = selectEl.querySelector('.current-value');
+      const selectedOptions = selectEl.querySelectorAll('.custom-options .option-item.selected');
+      if (selectedOptions.length === 0 ||
+         (selectedOptions.length === 1 && selectedOptions[0].dataset.value === 'all')) {
+        currentValueEl.textContent = 'All';
+        return;
+      }
+      currentValueEl.textContent = selectedOptions.length + ' selected';
+    }
+
+    // Ferme tous les menus custom-select si on clique ailleurs
+    document.addEventListener('click', function() {
+      closeAllCustomSelect();
+    });
+    function closeAllCustomSelect() {
+      document.querySelectorAll('.custom-options.open').forEach(menu => {
+        menu.classList.remove('open');
+      });
+    }
+  </script>
+</body>
+</html>
