@@ -404,8 +404,8 @@
     document.getElementById('filtersPanel').style.display = 'none';
     document.getElementById('infoPanel').style.display = 'none';
     document.getElementById('mobile-warning').style.display = 'flex';
-    return; // stoppe le reste du script
-  }
+    throw new Error('Mobile client only – stop execution');
+  } stoppe le reste du script
     /********************************************************
      * 1. Configuration de la carte
      ********************************************************/
