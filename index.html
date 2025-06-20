@@ -22,6 +22,58 @@
       position: relative;
     }
 
+        /* À coller dans votre <style> global ou dans un nouveau fichier CSS */
+    .mobile-warning {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      box-sizing: border-box;
+      z-index: 2000;
+    }
+    
+    .mobile-warning .warning-img {
+      max-width: 120px;
+      margin-bottom: 20px;
+    }
+    
+    .mobile-warning h2 {
+      font-family: Arial, sans-serif;
+      font-size: 1.8rem;
+      margin: 0 0 10px;
+      color: #333;
+    }
+    
+    .mobile-warning p {
+      font-family: Arial, sans-serif;
+      font-size: 1rem;
+      margin: 0 0 20px;
+      color: #555;
+      line-height: 1.4;
+    }
+
+    .mobile-warning .mobile-btn {
+      display: inline-block;
+      background: #000;
+      color: #fff;
+      border-radius: 6px;
+      padding: 10px 20px;
+      text-decoration: none;
+      font-family: Arial, sans-serif;
+      font-size: 1rem;
+      transition: background 0.2s ease;
+    }
+
+    .mobile-warning .mobile-btn:hover {
+      background: #333;
+    }
+
     /* Titre centré en haut de la carte */
     .map-title {
       position: absolute;
@@ -244,11 +296,12 @@
 </head>
 <body>
 
-  <!-- Message réservé aux mobiles -->
-  <div id="mobile-warning" style="display:none; padding:40px; text-align:center;">
-    <p>📱 To enjoy the interactive map, please use a desktop computer.</p>
-    <p><a href="https://swisscarto.softr.app">Access the structures listing on mobile</a></p>
-  </div>
+  <!-- Ajoute dans le <body>, avant ton <div id="map"> -->
+<div id="mobile-warning" class="mobile-warning" style="display:none;">
+  <img src="Images/mobile_warning.png" alt="Mobile not supported" class="warning-img">
+  <a href="listing.html" class="mobile-btn">Access the structures listing on mobile</a>
+</div>
+
 
   <div id="map">
     <div class="map-title">Entrepreneurial Support Structures in Switzerland</div>
@@ -346,15 +399,12 @@
   <script>
 
   // Détection mobile simple
-  if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
-    // On masque la carte et les panels
+   if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
     document.getElementById('map').style.display = 'none';
-    document.querySelector('.filters-panel').style.display = 'none';
-    document.querySelector('.info-panel').style.display = 'none';
-    // On affiche le message
-    document.getElementById('mobile-warning').style.display = 'block';
-    // On stoppe le chargement de la suite du script
-    throw new Error('Mobile detected – redirect to listing only');
+    document.getElementById('filtersPanel').style.display = 'none';
+    document.getElementById('infoPanel').style.display = 'none';
+    document.getElementById('mobile-warning').style.display = 'flex';
+    return; // stoppe le reste du script
   }
     /********************************************************
      * 1. Configuration de la carte
