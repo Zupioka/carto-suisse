@@ -239,6 +239,30 @@
       background-size: cover;
       margin-left: 10px;
     }
+    /* === Responsive mobile (jusqu’à 768px de large) === */
+@media only screen and (max-width: 768px) {
+  /* Cache les panneaux latéraux par défaut */
+  .filters-panel,
+  .info-panel {
+    display: none !important;
+    width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    bottom: 0 !important;       /* on les place en bas quand on force l’affichage */
+    max-height: 50vh !important;/* n’occupe pas plus de la moitié de l’écran */
+    overflow-y: auto !important;
+    z-index: 1300 !important;
+  }
+  /* Ajoute un bouton flottant pour ouvrir/fermer les filtres */
+  #filtersToggle {
+    display: block;
+  }
+  /* Masque le titre fixe (optionnel, trop encombrant) */
+  .map-title {
+    font-size: 1.2rem;
+    padding: 8px 20px;
+  }
   </style>
 </head>
 <body>
