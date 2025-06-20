@@ -244,6 +244,12 @@
 </head>
 <body>
 
+  <!-- Message réservé aux mobiles -->
+  <div id="mobile-warning" style="display:none; padding:40px; text-align:center;">
+    <p>📱 To enjoy the interactive map, please use a desktop computer.</p>
+    <p><a href="https://airtable.com/appPR3rhBunFBuXtP/shr9VyDu53CSTP0pq">Access the structures listing on mobile</a></p>
+  </div>
+
   <div id="map">
     <div class="map-title">Entrepreneurial Support Structures in Switzerland</div>
   </div>
@@ -338,6 +344,18 @@
   <!-- Script Leaflet -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
+
+  // Détection mobile simple
+  if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+    // On masque la carte et les panels
+    document.getElementById('map').style.display = 'none';
+    document.querySelector('.filters-panel').style.display = 'none';
+    document.querySelector('.info-panel').style.display = 'none';
+    // On affiche le message
+    document.getElementById('mobile-warning').style.display = 'block';
+    // On stoppe le chargement de la suite du script
+    throw new Error('Mobile detected – redirect to listing only');
+  }
     /********************************************************
      * 1. Configuration de la carte
      ********************************************************/
