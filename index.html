@@ -397,7 +397,8 @@
   <!-- Script Leaflet -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-
+    
+document.addEventListener('DOMContentLoaded', function() {
   // Détection mobile simple
    if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
     document.getElementById('map').style.display = 'none';
@@ -405,7 +406,7 @@
     document.getElementById('infoPanel').style.display = 'none';
     document.getElementById('mobile-warning').style.display = 'flex';
     throw new Error('Mobile client only – stop execution');
-  } stoppe le reste du script
+  }
     /********************************************************
      * 1. Configuration de la carte
      ********************************************************/
@@ -428,7 +429,6 @@
     });
     let currentlySelectedMarker = null;
 
-    document.addEventListener('DOMContentLoaded', function() {
       // 2) Initialisation de la carte
       map = L.map('map', { minZoom: 8 }).setView([46.8182, 8.0505], 8);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
