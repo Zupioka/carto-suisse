@@ -397,7 +397,26 @@
   <!-- Script Leaflet -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
+        // variables globales
+    let map, geojsonLayer;
+    let currentlySelectedMarker = null;
     
+    // icônes globales
+    const defaultIcon = L.icon({
+      iconUrl: 'Images/Blackpin.png',
+      iconSize: [32, 34],
+      iconAnchor: [16, 32],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+    const selectedIcon = L.icon({
+      iconUrl: 'Images/Redpin.png',
+      iconSize: [32, 34],
+      iconAnchor: [16, 32],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+
 document.addEventListener('DOMContentLoaded', function() {
   // Détection mobile simple
    if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
@@ -411,23 +430,6 @@ document.addEventListener('DOMContentLoaded', function() {
      * 1. Configuration de la carte
      ********************************************************/
     let map, geojsonLayer;
-
-    // 1) Définition des icônes et variable de sélection
-    const defaultIcon = L.icon({
-      iconUrl: 'images/Blackpin.png',
-      iconSize: [32, 34],
-      iconAnchor: [16, 32],
-      popupAnchor: [1, -34],
-      shadowSize: [41, 41]
-    });
-    const selectedIcon = L.icon({
-      iconUrl: 'images/Redpin.png',
-      iconSize: [32, 34],
-      iconAnchor: [16, 32],
-      popupAnchor: [1, -34],
-      shadowSize: [41, 41]
-    });
-    let currentlySelectedMarker = null;
 
       // 2) Initialisation de la carte
       map = L.map('map', { minZoom: 8 }).setView([46.8182, 8.0505], 8);
