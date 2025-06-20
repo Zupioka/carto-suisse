@@ -299,7 +299,7 @@
   <!-- Ajoute dans le <body>, avant ton <div id="map"> -->
 <div id="mobile-warning" class="mobile-warning" style="display:none;">
   <img src="Images/mobile_warning.png" alt="Mobile not supported" class="warning-img">
-  <a href="listing.html" class="mobile-btn">Access the structures listing on mobile</a>
+  <a href="https://swisscarto.softr.app" class="mobile-btn">Access the structures listing on mobile</a>
 </div>
 
 
@@ -428,6 +428,8 @@ document.addEventListener('DOMContentLoaded', function() {
       shadowSize: [41, 41]
     });
     let currentlySelectedMarker = null;
+
+  document.addEventListener('DOMContentLoaded', function() {
 
       // 2) Initialisation de la carte
       map = L.map('map', { minZoom: 8 }).setView([46.8182, 8.0505], 8);
