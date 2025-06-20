@@ -271,6 +271,23 @@
     <div class="map-title">Entrepreneurial Support Structures in Switzerland</div>
   </div>
 
+<!-- Toggle pour mobile -->
+<button id="filtersToggle" aria-label="Toggle Filters"
+  style="
+    display:none;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1400;
+    background: rgba(255,255,255,0.9);
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 1.2rem;
+  ">
+  ☰
+</button>
+
   <!-- Panneau de filtres (droite) -->
   <div class="filters-panel" id="filtersPanel">
     <h1>Filters</h1>
@@ -396,6 +413,22 @@
       const bounds = L.latLngBounds(sw, ne);
       map.setMaxBounds(bounds);
       map.on('drag', () => map.panInsideBounds(bounds, { animate: false }));
+
+      // Toggle filters on mobile
+      const toggleBtn = document.getElementById('filtersToggle');
+      const filtersPanel = document.querySelector('.filters-panel');
+
+    toggleBtn.addEventListener('click', e => {
+     e.stopPropagation();
+     filtersPanel.classList.toggle('open');
+      // si tu veux aussi fermer le panneau d'info :
+      document.getElementById('infoPanel').classList.remove('show');
+      });
+
+      // Fermer si on clique ailleurs
+      document.addEventListener('click', () => {
+      filtersPanel.classList.remove('open');
+      });
 
       // Charger data et initialiser les filtres
       loadGeoJSON();
